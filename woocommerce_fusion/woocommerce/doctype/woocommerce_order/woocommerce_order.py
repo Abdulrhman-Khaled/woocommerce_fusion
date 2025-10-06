@@ -53,7 +53,7 @@ class WooCommerceOrder(WooCommerceResource):
 	"""
 
 	doctype = "WooCommerce Order"
-	resource: str = "orders"
+	resource: str = "orders/"
 
 	@staticmethod
 	def _init_api() -> List[WooCommerceAPI]:
