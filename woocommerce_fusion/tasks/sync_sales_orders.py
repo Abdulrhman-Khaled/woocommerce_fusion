@@ -489,17 +489,20 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		wc_server = frappe.get_cached_doc("WooCommerce Server", wc_order.woocommerce_server)
 
 		new_sales_order.woocommerce_server = wc_order.woocommerce_server
-		# Set the payment_method_title field if necessary, use the payment method ID if the title field is too long
 		payment_method = (
 			wc_order.payment_method_title
 			if len(wc_order.payment_method_title) < 140
 			else wc_order.payment_method
 		)
 		new_sales_order.woocommerce_payment_method = payment_method
-		created_date = wc_order.date_created.split("T")
-		new_sales_order.transaction_date = created_date[0]
-		delivery_after = wc_server.delivery_after_days or 7
-		new_sales_order.delivery_date = frappe.utils.add_days(created_date[0], delivery_after)
+		created_date = wc_order.date_created.split("T")[0]
+		new_sales_order.transaction_date = created_date
+		delivery_date = get_delivery_date_from_meta(wc_order)
+		if delivery_date:
+			new_sales_order.delivery_date = delivery_date
+		else:
+			delivery_after = wc_server.delivery_after_days or 7
+			new_sales_order.delivery_date = frappe.utils.add_days(created_date, delivery_after)
 		new_sales_order.company = wc_server.company
 		new_sales_order.currency = wc_order.currency
 
@@ -530,6 +533,18 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		new_sales_order.reload()
 		self.create_and_link_payment_entry(wc_order, new_sales_order)
 		new_sales_order.save()
+
+	def get_delivery_date_from_meta(wc_order):
+		try:
+			meta_data = json.loads(wc_order.meta_data or "[]")
+			for meta in meta_data:
+				if meta.get("key") == "delivery_date" and meta.get("value"):
+					# Expected format: YYYY-MM-DD
+					return meta["value"]
+		except Exception:
+			pass
+
+		return None
 
 	def create_or_link_customer_and_address(self, wc_order: WooCommerceOrder) -> str:
 		"""
