@@ -156,7 +156,9 @@ class WooCommerceResource(Document):
 			# Map Frappe query parameters to WooCommerce query parameters
 			params = {}
 			per_page = (
-				wc_records_per_page_limit
+				min(int(args["page_length"]), wc_records_per_page_limit)
+				if args and "page_length" in args
+				else wc_records_per_page_limit
 			)
 			offset = int(args["start"]) if args and "start" in args else 0
 			params["per_page"] = min(per_page + offset, wc_records_per_page_limit)

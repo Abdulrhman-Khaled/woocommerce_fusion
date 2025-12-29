@@ -9,23 +9,10 @@ from woocommerce import API
 class APIWithRequestLogging(API):
 	"""WooCommerce API with Request Logging."""
 
-	def _fix_trailing_slash(self, endpoint):
-		"""
-		Add a trailing slash to REST endpoints if missing and no query string exists.
-		Example:
-			orders -> orders/
-			orders/ -> stays same
-			orders?status=completed -> stays same
-		"""
-		if "?" not in endpoint and not endpoint.endswith("/"):
-			endpoint = endpoint + "/"
-		return endpoint
-		
 	def _API__request(self, method, endpoint, data, params=None, **kwargs):
 		"""Override _request method to also create a 'WooCommerce Request Log'"""
 		result = None
 		try:
-			endpoint = self._fix_trailing_slash(endpoint)
 			result = super()._API__request(method, endpoint, data, params, **kwargs)
 			if not frappe.flags.in_test and is_woocommerce_request_logging_enabled(self.url):
 				frappe.enqueue(
