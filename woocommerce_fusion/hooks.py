@@ -146,7 +146,11 @@ scheduler_events = {
 	# 	"weekly": [
 	# 		"woocommerce_fusion.tasks.daily"
 	# 	],
-	"hourly_long": [
+	# "hourly_long": [
+	# 	"woocommerce_fusion.tasks.sync_sales_orders.sync_woocommerce_orders_modified_since",
+	# 	"woocommerce_fusion.tasks.sync_items.sync_woocommerce_products_modified_since",
+	# ],
+	"*/3 * * * *": [
 		"woocommerce_fusion.tasks.sync_sales_orders.sync_woocommerce_orders_modified_since",
 		"woocommerce_fusion.tasks.sync_items.sync_woocommerce_products_modified_since",
 	],
