@@ -534,17 +534,20 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		self.create_and_link_payment_entry(wc_order, new_sales_order)
 		new_sales_order.save()
 
-	def get_delivery_date_from_meta(wc_order):
+	def get_delivery_date_from_meta(self, wc_order):
 		try:
 			meta_data = json.loads(wc_order.meta_data or "[]")
 			for meta in meta_data:
 				if meta.get("key") == "delivery_date" and meta.get("value"):
-					# Expected format: YYYY-MM-DD
 					return meta["value"]
 		except Exception:
-			pass
+			frappe.log_error(
+				frappe.get_traceback(),
+				"WooCommerce delivery_date parse error"
+			)
 
 		return None
+
 
 	def create_or_link_customer_and_address(self, wc_order: WooCommerceOrder) -> str:
 		"""
