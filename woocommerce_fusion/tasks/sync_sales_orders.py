@@ -497,7 +497,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		new_sales_order.woocommerce_payment_method = payment_method
 		created_date = wc_order.date_created.split("T")[0]
 		new_sales_order.transaction_date = created_date
-		delivery_date = get_delivery_date_from_meta(wc_order)
+		delivery_date = self.get_delivery_date_from_meta(wc_order)
 		if delivery_date:
 			new_sales_order.delivery_date = delivery_date
 		else:
