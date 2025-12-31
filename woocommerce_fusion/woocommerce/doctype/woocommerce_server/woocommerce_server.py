@@ -116,10 +116,17 @@ class WooCommerceServer(Document):
 
 	@frappe.whitelist()
 	@redis_cache(ttl=600)
-	def get_item_docfields(self, doctype: str) -> List[dict]:
+	def get_item_docfields(self, doctype: str = None, **kwargs) -> List[dict]:
 		"""
-		Get a list of DocFields for the Item Doctype
+		Get a list of DocFields for the given Doctype (default: Item)
 		"""
+
+		# Handle run_doc_method / JS calls
+		doctype = doctype or kwargs.get("doctype") or frappe.form_dict.get("doctype")
+
+		if not doctype:
+			frappe.throw("doctype is required")
+
 		invalid_field_types = [
 			"Column Break",
 			"Fold",
@@ -130,16 +137,25 @@ class WooCommerceServer(Document):
 			"Table",
 			"Table MultiSelect",
 		]
+
 		docfields = frappe.get_all(
 			"DocField",
 			fields=["label", "name", "fieldname"],
-			filters=[["fieldtype", "not in", invalid_field_types], ["parent", "=", doctype]],
+			filters=[
+				["fieldtype", "not in", invalid_field_types],
+				["parent", "=", doctype],
+			],
 		)
+
 		custom_fields = frappe.get_all(
 			"Custom Field",
 			fields=["label", "name", "fieldname"],
-			filters=[["fieldtype", "not in", invalid_field_types], ["dt", "=", doctype]],
+			filters=[
+				["fieldtype", "not in", invalid_field_types],
+				["dt", "=", doctype],
+			],
 		)
+
 		return docfields + custom_fields
 
 	@frappe.whitelist()
