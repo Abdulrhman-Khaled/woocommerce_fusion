@@ -498,11 +498,15 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		created_date = wc_order.date_created.split("T")[0]
 		new_sales_order.transaction_date = created_date
 		delivery_date = self.get_delivery_date_from_meta(wc_order)
+		delivery_time = self.get_delivery_time_from_meta(wc_order)
+		if delivery_time:
+			new_sales_order.customer_time_slot = delivery_time
 		if delivery_date:
 			new_sales_order.delivery_date = delivery_date
 		else:
 			delivery_after = wc_server.delivery_after_days or 7
 			new_sales_order.delivery_date = frappe.utils.add_days(created_date, delivery_after)
+
 		new_sales_order.company = wc_server.company
 		new_sales_order.currency = wc_order.currency
 
@@ -544,6 +548,20 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 			frappe.log_error(
 				frappe.get_traceback(),
 				"WooCommerce delivery_date parse error"
+			)
+
+		return None
+
+	def get_delivery_time_from_meta(self, wc_order):
+		try:
+			meta_data = json.loads(wc_order.meta_data or "[]")
+			for meta in meta_data:
+				if meta.get("key") == "billing_time" and meta.get("value"):
+					return meta["value"]
+		except Exception:
+			frappe.log_error(
+				frappe.get_traceback(),
+				"WooCommerce billing_time parse error"
 			)
 
 		return None
