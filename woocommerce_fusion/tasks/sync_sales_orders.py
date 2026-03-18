@@ -500,7 +500,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		delivery_date = self.get_delivery_date_from_meta(wc_order)
 		delivery_time = self.get_delivery_time_from_meta(wc_order)
 		if delivery_time:
-			new_sales_order.customer_time_slot = delivery_time
+			new_sales_order.custom_time_slot = delivery_time
 		if delivery_date:
 			new_sales_order.delivery_date = delivery_date
 		else:
