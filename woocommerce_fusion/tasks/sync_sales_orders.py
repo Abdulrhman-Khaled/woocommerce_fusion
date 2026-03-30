@@ -930,6 +930,15 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		address.is_shipping_address = is_shipping_address
 		address.append("links", {"link_doctype": "Customer", "link_name": customer.name})
 
+		meta_data = self.woocommerce_order.meta_data
+		address.state       = self.get_meta_value(meta_data, "billing_area")
+		address.custom_block      = self.get_meta_value(meta_data, "billing_block")
+		address.custom_street     = self.get_meta_value(meta_data, "billing_street")
+		address.custom_gada       = self.get_meta_value(meta_data, "billing_gada")
+		address.custom_house      = self.get_meta_value(meta_data, "billing_house")
+		address.custom_floor      = self.get_meta_value(meta_data, "billing_floor")
+		address.custom_apartment  = self.get_meta_value(meta_data, "billing_apartment")
+
 		address.flags.ignore_mandatory = True
 		address.save()
 
@@ -949,15 +958,34 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 		address.pincode = raw_data.get("postcode")
 		address.phone = raw_data.get("phone")
 		address.address_title = (
-			{customer.customer_name}
+			customer.customer_name
 			if title_convention == "Customer Name only"
 			else f"{customer.name}-{address.address_type}"
 		)
 		address.is_primary_address = is_primary_address
 		address.is_shipping_address = is_shipping_address
 
+		meta_data = self.woocommerce_order.meta_data
+		address.state       = self.get_meta_value(meta_data, "billing_area")
+		address.custom_block      = self.get_meta_value(meta_data, "billing_block")
+		address.custom_street     = self.get_meta_value(meta_data, "billing_street")
+		address.custom_gada       = self.get_meta_value(meta_data, "billing_gada")
+		address.custom_house      = self.get_meta_value(meta_data, "billing_house")
+		address.custom_floor      = self.get_meta_value(meta_data, "billing_floor")
+		address.custom_apartment  = self.get_meta_value(meta_data, "billing_apartment")
+
 		address.flags.ignore_mandatory = True
 		address.save()
+
+	def get_meta_value(self, meta_data, key):
+		try:
+			parsed = json.loads(meta_data) if isinstance(meta_data, str) else meta_data
+			for meta in parsed:
+				if meta.get("key") == key or meta.get("key") == f"_{key}":
+					return meta.get("value")
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), f"WooCommerce meta parse error for key: {key}")
+		return None
 
 
 def get_list_of_wc_orders(
